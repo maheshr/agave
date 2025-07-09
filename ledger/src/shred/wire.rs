@@ -442,7 +442,9 @@ pub(crate) fn corrupt_packet<R: Rng>(
 mod tests {
     use {
         super::*,
-        crate::shred::{tests::make_merkle_shreds_for_tests, traits::ShredData},
+        crate::shred::{
+            tests::make_merkle_shreds_for_tests, traits::ShredData, SHREDS_PER_FEC_BLOCK,
+        },
         assert_matches::assert_matches,
         rand::Rng,
         solana_perf::packet::PacketFlags,
@@ -501,7 +503,7 @@ mod tests {
         let shreds_len = shreds.len();
         for (index, shred) in shreds.iter_mut().enumerate() {
             let signature = make_dummy_signature(&mut rng);
-            let is_last_batch = index >= shreds_len - 64;
+            let is_last_batch = index >= shreds_len - SHREDS_PER_FEC_BLOCK;
             if chained && is_last_in_slot && is_last_batch {
                 shred.set_retransmitter_signature(&signature).unwrap();
             } else {
@@ -513,7 +515,7 @@ mod tests {
         }
 
         for (index, shred) in shreds.iter().enumerate() {
-            let is_last_batch = index >= shreds_len - 64;
+            let is_last_batch = index >= shreds_len - SHREDS_PER_FEC_BLOCK;
             let mut packet = Packet::default();
             if repaired {
                 packet.meta_mut().flags |= PacketFlags::REPAIR;
